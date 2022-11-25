@@ -202,7 +202,11 @@ class _PanopticPrediction:
 
         self._sinfo = {s["id"]: s for s in segments_info}  # seg id -> seg info
         segment_ids, areas = torch.unique(panoptic_seg, sorted=True, return_counts=True)
-        areas = areas.numpy()
+        print(type(areas))
+        if isinstance(areas, np.array):
+            areas = areas.numpy()
+        else:
+            areas = areas.detach().cpu().numpy()
         sorted_idxs = np.argsort(-areas)
         self._seg_ids, self._seg_areas = segment_ids[sorted_idxs], areas[sorted_idxs]
         self._seg_ids = self._seg_ids.tolist()
@@ -394,7 +398,7 @@ class Visualizer:
     def get_image(self, img):
         img = np.asarray(img).clip(0, 255).astype(np.uint8)
         return VisImage(img, scale=1.0)
-    
+
     def draw_box_predictions(
         self,
         boxes=None,
@@ -480,8 +484,8 @@ class Visualizer:
                 )
 
         return self.output
-    
-    
+
+
     def draw_instance_predictions(self, predictions, alpha=0.8):
         """
         Draw instance-level prediction results on an image.
